@@ -25,19 +25,17 @@ public class CarGui implements Observer {
     public CarGui(Board board, int x, int y) {
         super();
         this.board=board;
-        frame= new JFrame("The Snake Game: "+(board instanceof LocalBoard ?"Local":"Remote"));
+        frame= new JFrame("Race Simulator: ");
         frame.setLocation(x, y);
         buildGui();
     }
 
     private void buildGui() {
         frame.setLayout(new BorderLayout());
-
         boardGui = new BoardComponent(board);
         boardGui.setPreferredSize(new Dimension(BOARD_WIDTH, BOARD_HEIGHT));
         frame.add(boardGui,BorderLayout.CENTER);
-
-        JButton resetObstaclesButton=new JButton("Reset snakes' directions");
+        JButton resetObstaclesButton=new JButton("Force PitStop");
         resetObstaclesButton.addActionListener(new ActionListener() {
 
             @Override

@@ -1,5 +1,8 @@
 package environment;
 
+import SimulationElements.Barrier;
+import SimulationElements.Car;
+
 import java.io.Serializable;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -15,12 +18,12 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Cell implements Serializable{
     private BoardPosition position;
     private Car ocuppyingCar = null;
-    private GameElement gameElement=null;
+    private Barrier barrier=null;
     private Lock lock = new ReentrantLock();
     private Condition condition = lock.newCondition();
 
-    public GameElement getGameElement() {
-        return (gameElement);
+    public Barrier getBarrier() {
+        return (barrier);
     }
 
     public Cell(BoardPosition position) {
@@ -32,13 +35,13 @@ public class Cell implements Serializable{
         return position;
     }
 
-    public void request(Snake snake) throws InterruptedException{
+    public void request(Car car) throws InterruptedException{
         lock.lock();
         try {
-            while (isOcupiedBySnake() || (gameElement != null && gameElement instanceof Obstacle)) {
+            while (isOcupiedByCar() || (barrier != null && barrier instanceof Barrier)) {
                 condition.await();
             }
-            ocuppyingSnake = snake;
+            ocuppyingCar = car;
         } finally {
             lock.unlock();
         }
@@ -47,8 +50,8 @@ public class Cell implements Serializable{
     public void release() {
         lock.lock();
         try {
-            if (ocuppyingSnake != null ) {
-                ocuppyingSnake = null;
+            if (ocuppyingCar != null ) {
+                ocuppyingCar = null;
                 condition.signalAll();
             }
         } finally {
@@ -56,66 +59,37 @@ public class Cell implements Serializable{
         }
     }
 
-    public boolean isOcupiedBySnake() {
-        return ocuppyingSnake!=null;
+    public boolean isOcupiedByCar() {
+        return ocuppyingCar!=null;
     }
 
-    public  void setGameElement(GameElement element) {
+    public  boolean setGameElement(Barrier barrier) {
         lock.lock();
         try {
-            while (isOcupiedBySnake() || gameElement != null) {
-                try {
-                    condition.await();
-                } catch (InterruptedException e) {
-                    System.err.println("The game crashed trying to set a new gameElement");
-                    System.exit(-1);
-                }
-            }
-            gameElement = element;
-            condition.signalAll();
+            this.barrier = barrier;
         } finally {
             lock.unlock();
         }
-
+        return true;
     }
 
     public boolean isOcupied() {
-        return isOcupiedBySnake() || (gameElement!=null && gameElement instanceof Obstacle);
+        return isOcupiedByCar() || (barrier!=null && barrier instanceof Barrier);
     }
 
-    public Snake getOcuppyingSnake() {
-        return ocuppyingSnake;
+    public Car getOcuppyingCar() {
+        return ocuppyingCar;
     }
-
-    public  Goal removeGoal() {
-        lock.lock();
-        try {
-            if (gameElement != null)
-                gameElement = null;
-            condition.signalAll();
-        } finally {
-            lock.unlock();
-        }
-        return null;
-    }
-
     public void removeObstacle() {
         lock.lock();
         try {
-            if (gameElement != null)
-                gameElement = null;
+            if (barrier != null)
+                barrier = null;
             condition.signalAll();
         } finally {
             lock.unlock();
         }
     }
 
-    public Goal getGoal() {
-        return (Goal)gameElement;
-    }
-
-    public boolean isOcupiedByGoal() {
-        return (gameElement!=null && gameElement instanceof Goal);
-    }
 }
 

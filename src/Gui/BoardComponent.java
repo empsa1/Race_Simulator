@@ -1,14 +1,16 @@
-package Gui;
+package gui;
 
-import SimulationElements.Car;
-import SimulationElements.HumanCar;
+import environment.LocalBoard;
 import environment.Board;
 import environment.BoardPosition;
 import environment.Cell;
-import environment.LocalBoard;
-
+import game.Goal;
+import game.HumanSnake;
+import game.Obstacle;
+import game.Snake;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -17,7 +19,12 @@ import java.awt.event.KeyListener;
 
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
-
+/** Graphical representarion of the game. This class should not be edited.
+ *
+ * @author luismota
+ *
+ */
+@SuppressWarnings("serial")
 public class BoardComponent extends JComponent implements KeyListener{
 
     private Board board;
@@ -34,15 +41,36 @@ public class BoardComponent extends JComponent implements KeyListener{
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        final double CELL_WIDTH=getHeight()/(double) CarGui.NUM_ROWS;
-        System.err.println("W:"+getWidth()+" H:"+getHeight());
+        final double CELL_WIDTH=getHeight()/(double)CarGui.NUM_ROWS;
+        //System.err.println("W:"+getWidth()+" H:"+getHeight());
         for (int x = 0; x < LocalBoard.NUM_COLUMNS; x++) {
             for (int y = 0; y < LocalBoard.NUM_ROWS; y++) {
                 Cell cell = board.getCell(new BoardPosition(x, y));
                 Image image = null;
-                if (cell.isOcupiedByCar()) {
+                if(cell.getGameElement()!=null)
+                    if(cell.getGameElement() instanceof Obstacle) {
+                        Obstacle obstacle=(Obstacle)cell.getGameElement();
+                        image = obstacleImage;
+                        g.setColor(Color.BLACK);
+                        g.drawImage(image, (int)Math.round(cell.getPosition().x* CELL_WIDTH),
+                                (int)Math.round(cell.getPosition().y* CELL_WIDTH),
+                                (int)Math.round(CELL_WIDTH),(int)Math.round(CELL_WIDTH), null);
+                        // write number of remaining moves
+                        g.setColor(Color.WHITE);
+                        g.setFont(new Font(Font.MONOSPACED,Font.PLAIN,(int)CELL_WIDTH));
+                        g.drawString(obstacle.getRemainingMoves()+"", (int)Math.round((cell.getPosition().x+0.15)* CELL_WIDTH),
+                                (int)Math.round((cell.getPosition().y+0.9) * CELL_WIDTH));
+                    }
+                    else if(cell.getGameElement() instanceof Goal) {
+                        Goal goal=(Goal)cell.getGameElement() ;
+                        g.setColor(Color.RED);
+                        g.setFont(new Font(Font.MONOSPACED,Font.PLAIN,(int)CELL_WIDTH));
+                        g.drawString(goal.getValue()+"", (int)Math.round((cell.getPosition().x+0.15)* CELL_WIDTH),
+                                (int)Math.round((cell.getPosition().y+0.9) * CELL_WIDTH));
+                    }
+                if (cell.isOcupiedBySnake()) {
                     // different color for human player...
-                    if(cell.getOcuppyingCar() instanceof HumanCar)
+                    if(cell.getOcuppyingSnake() instanceof HumanSnake)
                         g.setColor(Color.ORANGE);
                     else
                         g.setColor(Color.LIGHT_GRAY);
@@ -62,7 +90,7 @@ public class BoardComponent extends JComponent implements KeyListener{
             g.drawLine(0, (int)Math.round(y * CELL_WIDTH), (int)Math.round(LocalBoard.NUM_COLUMNS*CELL_WIDTH),
                     (int)Math.round(y* CELL_WIDTH));
         }
-        for (Car s : board.getCar()) {
+        for (Snake s : board.getSnakes()) {
             if (s.getLength() > 0) {
                 g.setColor(new Color(s.getIdentification() * 1000));
 
@@ -87,13 +115,13 @@ public class BoardComponent extends JComponent implements KeyListener{
     // releasing keys on the keyboard.
     @Override
     public void keyPressed(KeyEvent e) {
-        System.out.println("Got key pressed.");
+//		System.out.println("Got key pressed.");
         if(e.getKeyCode()!=KeyEvent.VK_LEFT && e.getKeyCode()!=KeyEvent.VK_RIGHT &&
-                e.getKeyCode()!=KeyEvent.VK_UP && e.getKeyCode()!=KeyEvent.VK_DOWN )
+                e.getKeyCode()!=KeyEvent.VK_UP && e.getKeyCode()!=KeyEvent.VK_DOWN ) {
+            System.out.println(e.getKeyCode());
             return; // ignore
+        }
         board.handleKeyPress(e.getKeyCode());
-
-
     }
 
     @Override
@@ -102,7 +130,7 @@ public class BoardComponent extends JComponent implements KeyListener{
                 e.getKeyCode()!=KeyEvent.VK_UP && e.getKeyCode()!=KeyEvent.VK_DOWN )
             return; // ignore
 
-        System.out.println("Got key released.");
+//		System.out.println("Got key released.");
         board.handleKeyRelease();
     }
 

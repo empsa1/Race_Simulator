@@ -1,10 +1,27 @@
 package environment;
 
-import SimulationElements.Car;
+import java.io.Serializable;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-public class Cell {
+
+/** Main class for game representation.
+ *
+ * @author luismota
+ *
+ */
+@SuppressWarnings("serial")
+public class Cell implements Serializable{
     private BoardPosition position;
     private Car ocuppyingCar = null;
+    private GameElement gameElement=null;
+    private Lock lock = new ReentrantLock();
+    private Condition condition = lock.newCondition();
+
+    public GameElement getGameElement() {
+        return (gameElement);
+    }
 
     public Cell(BoardPosition position) {
         super();
@@ -15,27 +32,90 @@ public class Cell {
         return position;
     }
 
-    public void request(Car car)
-            throws InterruptedException {
-        //TODO coordination and mutual exclusion
-        ocuppyingCar=car;
+    public void request(Snake snake) throws InterruptedException{
+        lock.lock();
+        try {
+            while (isOcupiedBySnake() || (gameElement != null && gameElement instanceof Obstacle)) {
+                condition.await();
+            }
+            ocuppyingSnake = snake;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void release() {
-        //TODO
+        lock.lock();
+        try {
+            if (ocuppyingSnake != null ) {
+                ocuppyingSnake = null;
+                condition.signalAll();
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 
-    public boolean isOcupiedByCar() {
-        return ocuppyingCar!=null;
+    public boolean isOcupiedBySnake() {
+        return ocuppyingSnake!=null;
+    }
+
+    public  void setGameElement(GameElement element) {
+        lock.lock();
+        try {
+            while (isOcupiedBySnake() || gameElement != null) {
+                try {
+                    condition.await();
+                } catch (InterruptedException e) {
+                    System.err.println("The game crashed trying to set a new gameElement");
+                    System.exit(-1);
+                }
+            }
+            gameElement = element;
+            condition.signalAll();
+        } finally {
+            lock.unlock();
+        }
+
     }
 
     public boolean isOcupied() {
-        return isOcupiedByCar();
+        return isOcupiedBySnake() || (gameElement!=null && gameElement instanceof Obstacle);
     }
 
+    public Snake getOcuppyingSnake() {
+        return ocuppyingSnake;
+    }
 
-    public Car getOcuppyingCar() {
-        return ocuppyingCar;
+    public  Goal removeGoal() {
+        lock.lock();
+        try {
+            if (gameElement != null)
+                gameElement = null;
+            condition.signalAll();
+        } finally {
+            lock.unlock();
+        }
+        return null;
+    }
+
+    public void removeObstacle() {
+        lock.lock();
+        try {
+            if (gameElement != null)
+                gameElement = null;
+            condition.signalAll();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public Goal getGoal() {
+        return (Goal)gameElement;
+    }
+
+    public boolean isOcupiedByGoal() {
+        return (gameElement!=null && gameElement instanceof Goal);
     }
 }
 

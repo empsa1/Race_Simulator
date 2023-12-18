@@ -9,6 +9,8 @@ public class Race {
 
     public static int MIN_TRACK_SIZE = 5000;
     public static int MAX_TRACK_SIZE = 7000;
+
+    public static int NUMBER_OF_LAPS = 57;
     private int raceSize;
 
     private Weather weather;

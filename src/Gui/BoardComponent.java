@@ -7,11 +7,8 @@ import environment.LocalBoard;
 import environment.Board;
 import environment.BoardPosition;
 import environment.Cell;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
+
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
@@ -38,7 +35,6 @@ public class BoardComponent extends JComponent implements KeyListener {
 
     @Override
     protected void paintComponent(Graphics g) {
-        System.out.println("Inside paintComponent");
         super.paintComponent(g);
         final double CELL_WIDTH = getHeight() / (double) CarGui.NUM_ROWS;
 
@@ -57,8 +53,9 @@ public class BoardComponent extends JComponent implements KeyListener {
                 if (cell.isOcupiedByCar()) {
                     if (cell.getOcuppyingCar() instanceof HumanCar)
                         g.setColor(Color.ORANGE);
-                    else
+                    else {
                         g.setColor(Color.LIGHT_GRAY);
+                    }
                     g.fillRect((int) Math.round(cell.getPosition().x * CELL_WIDTH),
                             (int) Math.round(cell.getPosition().y * CELL_WIDTH),
                             (int) Math.round(CELL_WIDTH), (int) Math.round(CELL_WIDTH));
@@ -91,6 +88,31 @@ public class BoardComponent extends JComponent implements KeyListener {
                 ((Graphics2D) g).setStroke(new BasicStroke(1));
             }
         }
+        double precipitation = this.board.getWeather().getPrecipitation();
+        double temperature = this.board.getWeather().getTemperatureDegree();
+        double humidity = this.board.getWeather().getHumidityPercentage();
+        double windSpeed = this.board.getWeather().getWindSpeed();
+
+// Formatting values with units
+        String formattedPrecipitation = String.format("Precipitation: %.1f mm", precipitation);
+        String formattedTemperature = String.format("Temperature: %.0f°C", temperature);
+        String formattedHumidity = String.format("Humidity: %.0f%%", humidity);
+        String formattedWindSPeed = String.format("Wind Speed %.0fkm/h", windSpeed);
+
+// Drawing formatted values at the top left corner with the bigger font
+        g.setColor(Color.BLUE);
+        Font originalFont = g.getFont(); // Store the original font
+        Font biggerFont = originalFont.deriveFont(originalFont.getSize() * 1.5f); // Create a bigger font
+        g.setFont(biggerFont);
+
+// Drawing formatted values on the GUI
+        g.drawString(formattedPrecipitation, 10, 20);
+        g.drawString(formattedTemperature, 10, 45);
+        g.drawString(formattedHumidity, 10, 70);
+        g.drawString(formattedWindSPeed, 10, 100);
+
+// Resetting to the original font
+        g.setFont(originalFont);
     }
 
     // Methods keyPressed and keyReleased will react to user pressing and releasing keys on the keyboard.

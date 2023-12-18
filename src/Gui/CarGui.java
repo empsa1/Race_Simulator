@@ -25,7 +25,7 @@ public class CarGui implements Observer {
     public CarGui(Board board, int x, int y) {
         super();
         this.board=board;
-        frame= new JFrame("Race Simulator: ");
+        frame= new JFrame("Race Simulator");
         frame.setLocation(x, y);
         buildGui();
     }

@@ -2,6 +2,7 @@ package environment;
 
 import SimulationElements.Barrier;
 import SimulationElements.Car;
+import race.Weather;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -16,14 +17,17 @@ public abstract class Board extends Observable {
     protected LinkedList<Car> cars = new LinkedList<Car>();
     public LinkedList<Barrier> barriers= new LinkedList<Barrier>();
     public static final int FIRST_EVER = 5;
-    public static int CURRENT_POS = FIRST_EVER;
+    public static int CURRENT_POS = 5;
     public static int TRACK_WIDTH = 3; //number - 1
+
+    private Weather weather;
 
     public static int getFirstPos() {
         CURRENT_POS++;
       return (CURRENT_POS - 1);
     }
     public Board() {
+        this.weather = new Weather();
         cells = new Cell[NUM_COLUMNS][NUM_ROWS];
         for (int x = 0; x < NUM_COLUMNS; x++) {
             for (int y = 0; y < NUM_ROWS; y++) {
@@ -32,6 +36,11 @@ public abstract class Board extends Observable {
         }
 
     }
+
+    public Weather getWeather() {
+        return weather;
+    }
+
     public Cell getCell(BoardPosition cellCoord) {
         return cells[cellCoord.x][cellCoord.y];
     }
@@ -41,34 +50,76 @@ public abstract class Board extends Observable {
     }
 
     public void designTrack() {
-        System.out.println("Building the upper end of the track");
-        int i = Board.NUM_COLUMNS - (Board.NUM_COLUMNS/2) - Board.TRACK_WIDTH;
-        while (i < Board.NUM_COLUMNS - (Board.NUM_COLUMNS/2) + Board.TRACK_WIDTH) {
+        int i = Board.TRACK_WIDTH;
+        while (i < Board.NUM_COLUMNS - Board.TRACK_WIDTH) {
             BoardPosition bp = new BoardPosition(i, Board.FIRST_EVER);
             Barrier barrier = new Barrier(this);
             getBarriers().add(barrier);
             this.getCell(bp).setGameElement(barrier);
-            System.out.println("Added barrier on: " + i + " " +  Board.FIRST_EVER);
             i++;
         }
-        i = Board.NUM_COLUMNS - (Board.NUM_COLUMNS/2);
-        System.out.println("Building the lower end of the track");
-        while (i < Board.NUM_COLUMNS - (Board.NUM_COLUMNS/2)) {
-            BoardPosition bp = new BoardPosition(i, Board.FIRST_EVER + Board.TRACK_WIDTH);
+        int temp = Board.FIRST_EVER;
+        i--;
+        while (temp < Board.NUM_COLUMNS - Board.TRACK_WIDTH) {
+            BoardPosition bp = new BoardPosition(i, temp);
             Barrier barrier = new Barrier(this);
             getBarriers().add(barrier);
             this.getCell(bp).setGameElement(barrier);
-            System.out.println("Added barrier on: " + i+ " " +  Board.FIRST_EVER);
-            i++;
+            temp++;
         }
-        int temp_x = i - 1;
-        while (temp_x < Board.NUM_ROWS/2) {
-            BoardPosition bp = new BoardPosition(Board.FIRST_EVER + Board.TRACK_WIDTH, temp_x);
+        temp = Board.FIRST_EVER;
+        while (temp < Board.NUM_COLUMNS - Board.TRACK_WIDTH) {
+            BoardPosition bp = new BoardPosition(Board.TRACK_WIDTH, temp);
             Barrier barrier = new Barrier(this);
             getBarriers().add(barrier);
             this.getCell(bp).setGameElement(barrier);
-            System.out.println("Added barrier on: " + temp_x + " " +  Board.FIRST_EVER);
-            temp_x++;
+            temp++;
+        }
+        i = Board.TRACK_WIDTH;
+        while (i < Board.NUM_COLUMNS - Board.TRACK_WIDTH) {
+            BoardPosition bp = new BoardPosition(i, temp);
+            Barrier barrier = new Barrier(this);
+            getBarriers().add(barrier);
+            this.getCell(bp).setGameElement(barrier);
+            i++;
+        }
+
+
+        i = Board.TRACK_WIDTH * 2 + 1;
+        while (i < Board.NUM_COLUMNS - Board.TRACK_WIDTH * 2 - 1) {
+            BoardPosition bp = new BoardPosition(i, Board.FIRST_EVER + Board.TRACK_WIDTH + 1);
+            Barrier barrier = new Barrier(this);
+            getBarriers().add(barrier);
+            this.getCell(bp).setGameElement(barrier);
+            i++;
+        }
+
+        i--;
+        temp = Board.FIRST_EVER + Board.TRACK_WIDTH + 1;
+        while (temp < Board.NUM_COLUMNS - Board.TRACK_WIDTH * 2) {
+            BoardPosition bp = new BoardPosition(i, temp);
+            Barrier barrier = new Barrier(this);
+            getBarriers().add(barrier);
+            this.getCell(bp).setGameElement(barrier);
+            temp++;
+        }
+        temp--;
+        i = Board.TRACK_WIDTH * 2 + 1;
+        while (i < Board.NUM_COLUMNS - Board.TRACK_WIDTH * 2 - 1) {
+            BoardPosition bp = new BoardPosition(i, temp);
+            Barrier barrier = new Barrier(this);
+            getBarriers().add(barrier);
+            this.getCell(bp).setGameElement(barrier);
+            i++;
+        }
+
+        temp = Board.FIRST_EVER + Board.TRACK_WIDTH + 1;
+        while (temp < Board.NUM_COLUMNS - Board.TRACK_WIDTH * 2) {
+            BoardPosition bp = new BoardPosition(Board.TRACK_WIDTH * 2 + 1, temp);
+            Barrier barrier = new Barrier(this);
+            getBarriers().add(barrier);
+            this.getCell(bp).setGameElement(barrier);
+            temp++;
         }
     }
 

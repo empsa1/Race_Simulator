@@ -35,16 +35,17 @@ public class Cell implements Serializable{
         return position;
     }
 
-    public void request(Car car) throws InterruptedException{
+    public boolean request(Car car) throws InterruptedException {
         lock.lock();
         try {
-            while (isOcupiedByCar() || (barrier != null && barrier instanceof Barrier)) {
-                condition.await();
+            if (ocuppyingCar == null && barrier == null) {
+                ocuppyingCar = car;
+                return true;
             }
-            ocuppyingCar = car;
         } finally {
             lock.unlock();
         }
+        return false;
     }
 
     public void release() {

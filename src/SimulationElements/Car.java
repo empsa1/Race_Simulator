@@ -16,13 +16,17 @@ public class Car extends Thread{
     private ArrayList<Tire> tires;      //0 --> FRONT LEFT; //1 --> FRONT RIGHT //2 --> BACK LEFT
     private BoardPosition pos;
     private static final int DELTA_SIZE = 10;
+    public static int CONSTANT = 3;
     protected LinkedList<Cell> cells = new LinkedList<Cell>();
+
+    private int numberOfLaps;
 
     public Car(int id, Board board, Distribution dist) {
         this.id = id;
         this.board = board;
         this.dist = dist;
         this.tires = new ArrayList<>();
+        this.numberOfLaps = 0;
         for (int i = 0; i < 3; i++)
             this.tires.add(new Tire(Tire.TireType.SOFT));
     }
@@ -68,18 +72,20 @@ public class Car extends Thread{
     }
 
     protected void doInitialPositioning() {
-        int posX = 0;
-        int posY = Board.getFirstPos();
+        int posX = Board.TRACK_WIDTH * 2 + CONSTANT;
+        CONSTANT--;
+        int posY = Board.getFirstPos() + 1;
         BoardPosition at = new BoardPosition(posX, posY);
-        if (posY >= Board.TRACK_WIDTH)
-            return ;
+        System.out.println("Placing car on: " + posX +" " +  posY);
         if (board.getCell(at).isOcupied()) {
+            System.out.println("Is occupied!");
             doInitialPositioning();
         }
         else {
             try {
                 board.getCell(at).request(this);
                 cells.add(board.getCell(at));
+                System.out.println("Acquired cell");
             } catch (InterruptedException e) {
                 System.out.println("There was an interruption while setting up initial car position!");
                 System.exit(-1);
@@ -89,5 +95,13 @@ public class Car extends Thread{
 
     public Board getBoard() {
         return board;
+    }
+
+    protected int getNumberOfLaps() {
+        return numberOfLaps;
+    }
+
+    protected void incrementLap() {
+        numberOfLaps++;
     }
 }
